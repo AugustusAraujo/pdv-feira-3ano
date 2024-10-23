@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { useState } from "react";
@@ -13,7 +14,7 @@ interface Product {
 
 export default function Home() {
   const [total, setTotal] = useState(0);
-  const [products, setProducts] = useState<Product[]>([
+  const [products] = useState<Product[]>([
     {
       id: 1,
       name: "Arroz",
@@ -32,10 +33,10 @@ export default function Home() {
   const [troco, setTroco] = useState<number | null>(null);
 
   function addToCart(id: number) {
-    let q = cartItems.filter((e) => e.id === id);
+    const q = cartItems.filter((e) => e.id === id);
 
     if (q.length === 1) {
-      let updatedCartItems = cartItems.map((e) => {
+      const updatedCartItems = cartItems.map((e) => {
         if (e.id === id) {
           e.count += 1;
           toast.success("Quantidade alterada para " + e.count);
@@ -44,7 +45,7 @@ export default function Home() {
       });
       setCartItems(updatedCartItems);
     } else {
-      let r = products.filter((e) => e.id === id);
+      const r = products.filter((e) => e.id === id);
       if (r.length === 1) {
         r[0].count = 1;
         setCartItems((prevItems) => [...prevItems, r[0]]);
@@ -53,11 +54,11 @@ export default function Home() {
     }
 
     recalculateTotal();
-    calcularTroco(total)
+    calcularTroco(total);
   }
 
   function decreaseFromCart(id: number) {
-    let updatedCartItems = cartItems
+    const updatedCartItems = cartItems
       .map((e) => {
         if (e.id === id && e.count > 0) {
           e.count -= 1;
@@ -69,7 +70,7 @@ export default function Home() {
 
     setCartItems(updatedCartItems);
     recalculateTotal();
-    calcularTroco(total)
+    calcularTroco(total);
   }
 
   // Remove item from cart completely
@@ -78,7 +79,7 @@ export default function Home() {
     setCartItems(updatedCartItems);
     recalculateTotal();
     toast.error("Produto removido do carrinho");
-    calcularTroco(total)
+    calcularTroco(total);
   }
 
   function recalculateTotal() {
