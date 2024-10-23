@@ -1,101 +1,197 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+interface Product {
+  id: number;
+  name: string;
+  price: number;
+  count: number;
+}
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [total, setTotal] = useState(0);
+  const [products, setProducts] = useState<Product[]>([
+    {
+      id: 1,
+      name: "Arroz",
+      price: 1,
+      count: 0,
+    },
+    {
+      id: 2,
+      name: "Feijão",
+      price: 1,
+      count: 0,
+    },
+  ]);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const [cartItems, setCartItems] = useState<Product[]>([]);
+  const [troco, setTroco] = useState<number | null>(null);
+
+  function addToCart(id: number) {
+    let q = cartItems.filter((e) => e.id === id);
+
+    if (q.length === 1) {
+      let updatedCartItems = cartItems.map((e) => {
+        if (e.id === id) {
+          e.count += 1;
+          toast.success("Quantidade alterada para " + e.count);
+        }
+        return e;
+      });
+      setCartItems(updatedCartItems);
+    } else {
+      let r = products.filter((e) => e.id === id);
+      if (r.length === 1) {
+        r[0].count = 1;
+        setCartItems((prevItems) => [...prevItems, r[0]]);
+        toast.success("Produto adicionado");
+      }
+    }
+
+    recalculateTotal();
+  }
+
+  function decreaseFromCart(id: number) {
+    let updatedCartItems = cartItems
+      .map((e) => {
+        if (e.id === id && e.count > 0) {
+          e.count -= 1;
+          toast.info("Quantidade alterada para " + e.count);
+        }
+        return e;
+      })
+      .filter((e) => e.count > 0);
+
+    setCartItems(updatedCartItems);
+    recalculateTotal();
+  }
+
+  // Remove item from cart completely
+  function removeFromCart(id: number) {
+    const updatedCartItems = cartItems.filter((item) => item.id !== id);
+    setCartItems(updatedCartItems);
+    recalculateTotal();
+    toast.error("Produto removido do carrinho");
+  }
+
+  function recalculateTotal() {
+    const total = cartItems.reduce(
+      (sum, item) => sum + item.price * item.count,
+      0
+    );
+    setTotal(total);
+  }
+
+  // Função para calcular o troco
+  function calcularTroco(valorPago: number) {
+    if (valorPago < total) {
+      toast.error("Valor insuficiente.");
+      setTroco(null);
+    } else {
+      const trocoCalculado = valorPago - total;
+      setTroco(trocoCalculado);
+    }
+  }
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  async function finalizarPedido() {
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch("/api/finalizar-pedido", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ cartItems }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success(data.message);
+      } else {
+        toast.error(data.message || "Erro ao finalizar o pedido.");
+      }
+    } catch (error) {
+      toast.error("Erro ao conectar com o servidor.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  return (
+    <div className="">
+      <div className="1/2">
+        {/* STOCK */}
+        <div className="border-solid border-gray-200 w-[100%] flex gap-2 ml-10 mr-10 mt-10">
+          {products.map((i, index) => (
+            <div
+              key={index}
+              className="w-1/6 bg-blue-400 h-8 flex justify-center items-center ital"
+              onClick={() => addToCart(i.id)}
+            >
+              {i.name} - R$ {i.price}
+            </div>
+          ))}
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+        {/* CART */}
+        <div className="bg-gray-100 h-[500px] w-1/3 mt-5 ml-10">
+          {cartItems.map((i, index) => (
+            <div
+              key={index}
+              className="text-black flex justify-between pr-5 pl-5 h-10 items-center"
+            >
+              <span>{i.name}</span> - <span>R$ {i.price.toFixed(2)}</span> -{" "}
+              <span>QTD: {i.count}</span> -{" "}
+              <span>R$ {(i.price * i.count).toFixed(2)}</span>
+              <button
+                className="text-red-500"
+                onClick={() => decreaseFromCart(i.id)}
+              >
+                (-)
+              </button>
+            </div>
+          ))}
+        </div>
+        {/* Input para inserir o valor pago */}
+        <div className="flex flex-col w-1/3 ml-10 mt-5">
+          <input
+            type="number"
+            placeholder="Valor pago"
+            className="border border-gray-400 p-2"
+            onChange={(e) => calcularTroco(Number(e.target.value))}
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+          {troco !== null && (
+            <span className="text-green-500 mt-3">
+              Troco: R$ {troco.toFixed(2)}
+            </span>
+          )}
+        </div>
+        {/* Toast Notifications */}
+        <ToastContainer />
+        {/* Footer */}
+        <footer className="w-1/2 bg-white text-black text-5xl flex justify-between box-border h-20 items-center rounded-md m-auto absolute bottom- left-10 pl-10 pr-10">
+          <span>Total: </span>
+          <span>R$ {total.toFixed(2)}</span>
+        </footer>
+      </div>
+      <div>
+        {" "}
+        {/* Botão para finalizar pedido */}
+        <button
+          onClick={finalizarPedido}
+          disabled={isSubmitting}
+          className="btn-finalizar"
         >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          {isSubmitting ? "Finalizando..." : "Finalizar Pedido"}
+        </button>
+      </div>
     </div>
   );
 }
