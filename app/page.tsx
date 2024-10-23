@@ -53,6 +53,7 @@ export default function Home() {
     }
 
     recalculateTotal();
+    calcularTroco(total)
   }
 
   function decreaseFromCart(id: number) {
@@ -68,6 +69,7 @@ export default function Home() {
 
     setCartItems(updatedCartItems);
     recalculateTotal();
+    calcularTroco(total)
   }
 
   // Remove item from cart completely
@@ -76,6 +78,7 @@ export default function Home() {
     setCartItems(updatedCartItems);
     recalculateTotal();
     toast.error("Produto removido do carrinho");
+    calcularTroco(total)
   }
 
   function recalculateTotal() {
@@ -126,8 +129,8 @@ export default function Home() {
   }
 
   return (
-    <div className="">
-      <div className="1/2">
+    <div className="w-[100%] flex">
+      <div className="w-1/2">
         {/* STOCK */}
         <div className="border-solid border-gray-200 w-[100%] flex gap-2 ml-10 mr-10 mt-10">
           {products.map((i, index) => (
@@ -141,7 +144,7 @@ export default function Home() {
           ))}
         </div>
         {/* CART */}
-        <div className="bg-gray-100 h-[500px] w-1/3 mt-5 ml-10">
+        <div className="bg-gray-100 h-[500px] w-2/3 mt-5 ml-10">
           {cartItems.map((i, index) => (
             <div
               key={index}
@@ -159,6 +162,12 @@ export default function Home() {
             </div>
           ))}
         </div>
+
+        {/* Toast Notifications */}
+        <ToastContainer />
+        {/* Footer */}
+      </div>
+      <div className="w-1/2">
         {/* Input para inserir o valor pago */}
         <div className="flex flex-col w-1/3 ml-10 mt-5">
           <input
@@ -173,25 +182,22 @@ export default function Home() {
             </span>
           )}
         </div>
-        {/* Toast Notifications */}
-        <ToastContainer />
-        {/* Footer */}
-        <footer className="w-1/2 bg-white text-black text-5xl flex justify-between box-border h-20 items-center rounded-md m-auto absolute bottom- left-10 pl-10 pr-10">
-          <span>Total: </span>
-          <span>R$ {total.toFixed(2)}</span>
-        </footer>
+        <div>
+          {" "}
+          {/* Botão para finalizar pedido */}
+          <button
+            onClick={finalizarPedido}
+            disabled={isSubmitting}
+            className="btn-finalizar"
+          >
+            {isSubmitting ? "Finalizando..." : "Finalizar Pedido"}
+          </button>
+        </div>
       </div>
-      <div>
-        {" "}
-        {/* Botão para finalizar pedido */}
-        <button
-          onClick={finalizarPedido}
-          disabled={isSubmitting}
-          className="btn-finalizar"
-        >
-          {isSubmitting ? "Finalizando..." : "Finalizar Pedido"}
-        </button>
-      </div>
+      <footer className="w-1/2 bg-white text-black text-5xl flex justify-between box-border h-20 items-center rounded-md m-auto absolute bottom-5 right-10 pl-10 pr-10">
+        <span>Total: </span>
+        <span>R$ {total.toFixed(2)}</span>
+      </footer>
     </div>
   );
 }

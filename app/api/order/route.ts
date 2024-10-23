@@ -32,13 +32,14 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({
+      success: true,
       message: "Pedido finalizado com sucesso",
       order,
     });
   } catch (error) {
     console.error("Erro ao finalizar o pedido:", error);
     return NextResponse.json(
-      { message: "Erro ao finalizar o pedido" },
+      { success: true, message: "Erro ao finalizar o pedido" },
       { status: 500 }
     );
   }
