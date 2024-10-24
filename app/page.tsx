@@ -54,7 +54,7 @@ export default function Home() {
     {
       id: 7,
       name: "Tropeiro",
-      price: 8,
+      price: 10,
       count: 0,
     },
   ]);
