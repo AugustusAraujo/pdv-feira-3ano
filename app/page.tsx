@@ -60,7 +60,7 @@ export default function Home() {
   ]);
 
   const [cartItems, setCartItems] = useState<Product[]>([]);
-  const [troco, setTroco] = useState<number>(0);
+  const [troco, setTroco] = useState<number | null>(0);
   const [loading, setLoading] = useState(false);
 
   function reset() {
